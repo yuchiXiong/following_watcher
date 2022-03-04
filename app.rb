@@ -4,7 +4,10 @@ require 'yaml'
 
 # 用户信息
 USER_NAME = 'yuchiXiong'.freeze
-OAUTH_INFO = YAML.load_file('./config.yaml')
+OAUTH_INFO = YAML.load_file('./config.yaml') || {
+  OAUTH_APP_ID: '',
+  OAUTH_APP_SECRET: ''
+}
 
 # 请求接口路径
 GITHUB_API_DOMAIN   = 'https://api.github.com'.freeze
@@ -15,19 +18,17 @@ COMMON_HEADERS = {
   'Accept': 'application/vnd.github.v3+json'.freeze
 }.freeze
 
-
 # other const
 LAST_TIME = 7 * 24 * 60 * 60
-
 
 # 请求方法
 def request(url:, method: :get)
   RestClient::Request.execute(
-      method:,
-      url:,
-      user: OAUTH_INFO['OAUTH_APP_ID'],
-      password: OAUTH_INFO['OAUTH_APP_SECRET'],
-      headers: COMMON_HEADERS
+    method:,
+    url:,
+    user: OAUTH_INFO['OAUTH_APP_ID'],
+    password: OAUTH_INFO['OAUTH_APP_SECRET'],
+    headers: COMMON_HEADERS
   )
 end
 
@@ -71,25 +72,31 @@ following_users.each do |user|
       .reject { |repo| repo['fork'] || repo['archived'] }
       .select { |repo| (Time.parse(repo['pushed_at']).to_i + LAST_TIME) > Time.now.to_i }
       .map do |repo|
-      since = Time.at(Time.now.to_i - LAST_TIME).strftime('%FT%TZ')
-      params = "per_page=100&page=1&author=#{user}&since=#{since}"
-      commits_response = request(
-        url: "#{GITHUB_API_DOMAIN}/repos/#{repo['full_name']}/commits?#{params}".freeze
-      ).body
-
-      commits = JSON.parse(commits_response)
-
-      break if commits.size.zero?
-
-      unless show
-        puts ">>>> @#{user} [https://github.com/#{user}]: " if page == 1
-        result << ">>>> @#{user} [https://github.com/#{user}]: " if page == 1
-        show = true
+      branchs = JSON.parse(request(url: "#{GITHUB_API_DOMAIN}/repos/#{repo['full_name']}/branches?per_page=100&page=1").body).map do |branch|
+        branch['name']
       end
 
-      commits.each do |commit|
-        puts "[#{commit['commit']['author']['date']}] ~#{repo['full_name']} : #{commit['commit']['message']}"
-        result << "[#{commit['commit']['author']['date']}] ~#{repo['full_name']} : #{commit['commit']['message']}"
+      since = Time.at(Time.now.to_i - LAST_TIME).strftime('%FT%TZ')
+
+      branchs.reject{|branch| branch.include?('dependabot')}.each do |branch|
+        params = "per_page=100&page=1&author=#{user}&since=#{since}&sha=#{branch}"
+        commits_response = request(
+          url: "#{GITHUB_API_DOMAIN}/repos/#{repo['full_name']}/commits?#{params}".freeze
+        ).body
+
+        commits = JSON.parse(commits_response)
+
+        next if commits.size.zero?
+
+        unless show
+          puts ">>>> @#{user} [https://github.com/#{user}]: " if page == 1
+          result << ">>>> @#{user} [https://github.com/#{user}]: " if page == 1
+          show = true
+        end
+        commits.each do |commit|
+          puts "[#{commit['commit']['author']['date']}] ~#{repo['full_name']} : #{commit['commit']['message']}"
+          result << "[#{commit['commit']['author']['date']}] ~#{repo['full_name']} : #{commit['commit']['message']}"
+        end
       end
     end
 
