@@ -94,8 +94,8 @@ following_users.each do |user|
           show = true
         end
         commits.each do |commit|
-          puts "[#{commit['commit']['author']['date']}] ~#{repo['full_name']} : #{commit['commit']['message']}"
-          result << "[#{commit['commit']['author']['date']}] ~#{repo['full_name']} : #{commit['commit']['message']}"
+          puts "[#{commit['commit']['author']['date']}] ~#{repo['full_name']} - #{branch} : #{commit['commit']['message']}"
+          result << "[#{commit['commit']['author']['date']}] ~#{repo['full_name']} - #{branch} : #{commit['commit']['message']}"
         end
       end
     end
