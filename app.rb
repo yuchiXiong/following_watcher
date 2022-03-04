@@ -78,7 +78,7 @@ following_users.each do |user|
 
       since = Time.at(Time.now.to_i - LAST_TIME).strftime('%FT%TZ')
 
-      branchs.reject{|branch| branch.include?('dependabot')}.each do |branch|
+      branchs.reject { |branch| branch.include?('dependabot') }.each do |branch|
         params = "per_page=100&page=1&author=#{user}&since=#{since}&sha=#{branch}"
         commits_response = request(
           url: "#{GITHUB_API_DOMAIN}/repos/#{repo['full_name']}/commits?#{params}".freeze
