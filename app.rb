@@ -70,6 +70,7 @@ following_users.each do |user|
 
     user_repos
       .reject { |repo| repo['fork'] || repo['archived'] }
+      .reject { |repo| repo['pushed_at'].nil? }
       .select { |repo| (Time.parse(repo['pushed_at']).to_i + LAST_TIME) > Time.now.to_i }
       .map do |repo|
       branchs = JSON.parse(request(url: "#{GITHUB_API_DOMAIN}/repos/#{repo['full_name']}/branches?per_page=100&page=1").body).map do |branch|
