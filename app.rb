@@ -1,3 +1,4 @@
+#!/Users/zyb/.rvm/rubies/ruby-3.3.4/bin/ruby
 require 'rest-client'
 require 'json'
 require 'yaml'
@@ -90,8 +91,8 @@ following_users.each do |user|
         next if commits.size.zero?
 
         unless show
-          puts ">>>> @#{user} [https://github.com/#{user}]: " if page == 1
-          result << ">>>> @#{user} [https://github.com/#{user}]: " if page == 1
+          puts ">>>> @#{user} [https://github.com/#{user}]: " 
+          result << ">>>> @#{user} [https://github.com/#{user}]: "
           show = true
         end
         commits.each do |commit|
