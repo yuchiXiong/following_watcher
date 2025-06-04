@@ -5,7 +5,9 @@ require 'yaml'
 
 # 用户信息
 USER_NAME = 'yuchiXiong'.freeze
-OAUTH_INFO = YAML.load_file('./config.yaml') || {
+script_path = File.realpath(__FILE__)
+script_dir = File.dirname(script_path)
+OAUTH_INFO = YAML.load_file(File.join(script_dir, 'config.yaml')) || {
   OAUTH_APP_ID: '',
   OAUTH_APP_SECRET: ''
 }
